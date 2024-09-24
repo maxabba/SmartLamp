@@ -80,7 +80,7 @@ void LedController::startSetupBlink(uint32_t blinkDur) {
         .name = "blink_timer"
     };
     ESP_ERROR_CHECK(esp_timer_create(&timerArgs, &blinkTimer));
-    ESP_ERROR_CHECK(esp_timer_start_periodic(blinkTimer, blinkDuration * 500));  // Mezzo ciclo di blink
+    ESP_ERROR_CHECK(esp_timer_start_periodic(blinkTimer, blinkDuration * 600));  // Mezzo ciclo di blink
 }
 
 void LedController::stopSetupBlink() {

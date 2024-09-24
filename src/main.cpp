@@ -5,8 +5,6 @@
 #include "LampStateMachine.h"
 #include "ESP32Time.h"
 #include "time.h"
-#include "esp_timer.h"
-
 
 #define LED_PIN 18
 #define LED_CHANNEL 0
@@ -19,9 +17,6 @@ SmartLamp* smartLamp;
 MotionSensor motionSensor;
 LampStateMachine lampStateMachine(ledController, motionSensor);
 ESP32Time rtc(1);
-
-
-
 
 bool isNightTime() {
   struct tm timeinfo;
@@ -37,17 +32,18 @@ bool isNightTime() {
   return false;
 }
 
-
 void setup() {
     Serial.begin(115200);
+    Serial.end();
     Serial2.begin(256000);  // Inizializza Serial2 per il sensore LD2410
 
     ledController.begin();
     motionSensor.begin();
-    lampStateMachine.begin();
+    //lampStateMachine.begin();
 
     // Inizia l'effetto di blink con fade
     ledController.startSetupBlink(1000);  // 1 secondo per ciclo di blink completo
+    
     homeSpan.setControlPin(0);
     homeSpan.setStatusPin(2);
     homeSpan.enableAutoStartAP();
@@ -80,11 +76,9 @@ void setup() {
 void loop() {
     homeSpan.poll();
 
-
-  if(isNightTime()) {
-    if (autoModeSwitch->getIsOnAutoMode()) {
-        lampStateMachine.update(smartLamp->getNewBrightness());
+    if(isNightTime()) {
+        if (autoModeSwitch->getIsOnAutoMode()) {
+            lampStateMachine.update(smartLamp->getNewBrightness());
+        }
     }
-  }
-
 }

@@ -1,10 +1,10 @@
 #include "HomeSpanController.h"
 
 SmartLamp::SmartLamp(LedController& controller) : Service::LightBulb(), ledController(controller) {
-    power = new Characteristic::On(true);
+    power = new Characteristic::On();
     level = new Characteristic::Brightness(100);
     Serial.println("Configuring SmartLamp...");
-    
+
 }
 
 boolean SmartLamp::update() {
