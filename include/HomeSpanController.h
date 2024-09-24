@@ -8,10 +8,12 @@ private:
     LedController& ledController;
     SpanCharacteristic *power;
     SpanCharacteristic *level;
+    uint8_t newBrightness;
 
 public:
     SmartLamp(LedController& controller);
     boolean update() override;
+    uint8_t getNewBrightness() const { return newBrightness; }
 };
 
 class AutoModeSwitch : public Service::Switch {

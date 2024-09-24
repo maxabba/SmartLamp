@@ -15,6 +15,7 @@
 
 LedController ledController(LED_PIN, LED_CHANNEL, FREQ, RESOLUTION);
 AutoModeSwitch* autoModeSwitch;
+SmartLamp* smartLamp;
 MotionSensor motionSensor;
 LampStateMachine lampStateMachine(ledController, motionSensor);
 ESP32Time rtc(1);
@@ -47,30 +48,32 @@ void setup() {
 
     // Inizia l'effetto di blink con fade
     ledController.startSetupBlink(1000);  // 1 secondo per ciclo di blink completo
-  homeSpan.setControlPin(0);
-  homeSpan.setStatusPin(2);
+    homeSpan.setControlPin(0);
+    homeSpan.setStatusPin(2);
     homeSpan.enableAutoStartAP();
+    homeSpan.setSketchVersion("1.0.0");
     homeSpan.setApSSID("SmartLamp-Setup");
     homeSpan.setApPassword("12345678");
     homeSpan.setPairingCode("10025800");
-homeSpan.enableWebLog(
-  100,                           // maxEntries: numero massimo di voci da salvare
-  "pool.ntp.org",                // timeServerURL: URL del server NTP per sincronizzare l'ora
-  "CET-1CEST,M3.5.0,M10.5.0/3",  // timeZone: fuso orario in formato POSIX.1
-  "weblog"                       // logURL: URL personalizzato per la pagina del Web Log
-);
+    homeSpan.enableOTA();  
+    homeSpan.enableWebLog(
+      100,                           // maxEntries: numero massimo di voci da salvare
+      "pool.ntp.org",                // timeServerURL: URL del server NTP per sincronizzare l'ora
+      "CET-1CEST,M3.5.0,M10.5.0/3",  // timeZone: fuso orario in formato POSIX.1
+      "weblog"                       // logURL: URL personalizzato per la pagina del Web Log
+    );
     homeSpan.begin(Category::Lighting, "Smart Lamp");
 
     new SpanAccessory();
         new Service::AccessoryInformation();
             new Characteristic::Identify();
-        new SmartLamp(ledController);
+        smartLamp = new SmartLamp(ledController);
         autoModeSwitch = new AutoModeSwitch(true);  // Inizializza con la modalità auto attiva
-
+        
     // Attiva la modalità auto
     autoModeSwitch->activateAutoMode();
 
-ledController.stopSetupBlink();
+    ledController.stopSetupBlink();
     Serial.println("Setup completato");
 }
 
@@ -80,7 +83,7 @@ void loop() {
 
   if(isNightTime()) {
     if (autoModeSwitch->getIsOnAutoMode()) {
-        lampStateMachine.update();
+        lampStateMachine.update(smartLamp->getNewBrightness());
     }
   }
 

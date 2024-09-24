@@ -1,19 +1,20 @@
 #include "HomeSpanController.h"
 
 SmartLamp::SmartLamp(LedController& controller) : Service::LightBulb(), ledController(controller) {
-    power = new Characteristic::On();
+    power = new Characteristic::On(true);
     level = new Characteristic::Brightness(100);
     Serial.println("Configuring SmartLamp...");
+    
 }
 
 boolean SmartLamp::update() {
     boolean isOn = power->getNewVal();
     int newBrightness = level->getNewVal();
-
+    this->newBrightness = newBrightness;
     if (isOn) {
         ledController.startFadeTo(map(newBrightness, 0, 100, 0, 4095), 200);  // Fade to new brightness over 1 second
-    } else {
-        ledController.startFadeOut(1000);  // Fade out over 1 second
+    }else{
+        ledController.startFadeOut(200);
     }
 
     Serial.print("Updating SmartLamp: ");
