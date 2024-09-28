@@ -13,6 +13,7 @@ void MotionSensor::update() {
         movementDetected = sensor.movingTargetDetected();
         movementDistance = sensor.movingTargetDistance();
         stationaryDistance = sensor.stationaryTargetDistance();
+
     }
 }
 

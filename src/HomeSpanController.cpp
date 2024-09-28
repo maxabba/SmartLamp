@@ -1,14 +1,9 @@
 #include "HomeSpanController.h"
 
-SmartLamp::SmartLamp(LedController& controller) 
-    : Service::LightBulb(), ledController(controller), autoModeSwitch(nullptr) {
+SmartLamp::SmartLamp(LedController& controller) : Service::LightBulb(), ledController(controller) {
     power = new Characteristic::On();
     level = new Characteristic::Brightness(100);
-    Serial.println("Configuring SmartLamp...");
-}
 
-void SmartLamp::setAutoModeSwitch(AutoModeSwitch* autoSwitch) {
-    autoModeSwitch = autoSwitch;
 }
 
 boolean SmartLamp::update() {
@@ -16,20 +11,10 @@ boolean SmartLamp::update() {
     int newBrightness = level->getNewVal();
     this->newBrightness = newBrightness;
     
-    if (autoModeSwitch && !autoModeSwitch->getIsOnAutoMode()) {
-        if (isOn) {
-            ledController.startFadeTo(map(newBrightness, 0, 100, 0, 4095), 200);
-        } else {
-            ledController.startFadeOut(200);
-        }
-
-        Serial.print("Updating SmartLamp: ");
-        Serial.print(isOn ? "ON" : "OFF");
-        Serial.print(" fading to ");
-        Serial.print(newBrightness);
-        Serial.println("% brightness");
-    } else {
-        Serial.println("SmartLamp update ignored due to Auto Mode being ON or not set");
+    if (isOn) {
+        ledController.startFadeTo(map(newBrightness, 0, 100, 0, (1 << ledController.getResolution()) - 1), 200);  // Fade to new brightness based on resolution
+    }else{
+        ledController.startFadeOut(200);
     }
 
     return true;
@@ -38,20 +23,44 @@ boolean SmartLamp::update() {
 AutoModeSwitch::AutoModeSwitch(bool initialState) : Service::Switch() {
     power = new Characteristic::On(initialState);
     isOnAutoMode = initialState;
-    Serial.println("Configuring Auto Mode Switch...");
-    Serial.print("Initial state: ");
-    Serial.println(isOnAutoMode ? "ON" : "OFF");
 }
 
 boolean AutoModeSwitch::update() {
     isOnAutoMode = power->getNewVal();
-    Serial.print("Auto Mode is now: ");
-    Serial.println(isOnAutoMode ? "ON" : "OFF");
     return true;
 }
 
 void AutoModeSwitch::activateAutoMode() {
     isOnAutoMode = true;
     power->setVal(true);
-    Serial.println("Auto Mode activated at startup");
 }
+
+
+
+void setupHomeSpan(LedController& ledController, SmartLamp*& smartLamp, AutoModeSwitch*& autoModeSwitch) {
+    ledController.startSetupBlink(1000);
+    homeSpan.setControlPin(0);
+    homeSpan.setStatusPin(2);
+    homeSpan.enableAutoStartAP();
+    homeSpan.setSketchVersion("1.0.0");
+    homeSpan.setApSSID("SmartLamp-Setup");
+    homeSpan.setApPassword("12345678");
+    homeSpan.setPairingCode("10025800");
+
+    homeSpan.setStatusCallback(LedController::statusCallback);
+
+
+    new SpanAccessory();
+        new Service::AccessoryInformation();
+            new Characteristic::Identify();
+        smartLamp = new SmartLamp(ledController);
+        autoModeSwitch = new AutoModeSwitch(true);  // Inizializza con la modalità auto attiva
+        
+    // Attiva la modalità auto
+    autoModeSwitch->activateAutoMode();
+    homeSpan.begin(Category::Lighting, "Smart Lamp");
+    homeSpan.autoPoll(8192,1,0);
+}
+
+
+

@@ -11,7 +11,7 @@ enum class LampState {
     RELAXATION,
     SLEEP,
     SUDDEN_MOVEMENT,
-    STATE_COUNT  // Used to determine the size of our arrays
+    STATE_COUNT
 };
 
 class LampStateMachine {
@@ -26,24 +26,35 @@ private:
     unsigned long lastPresenceTime;
     unsigned long debounceDelay;
 
-    
+    // Costruttore privato per il pattern Singleton
+    LampStateMachine(LedController& led, MotionSensor& motion);
+
+    // Disabilitare il costruttore di copia e l'operatore di assegnazione
+    LampStateMachine(const LampStateMachine&) = delete;
+    LampStateMachine& operator=(const LampStateMachine&) = delete;
+
     void setState(LampState newState);
 
-    using TransitionFunction = std::function<void(LampStateMachine&)>;
-    std::array<std::array<TransitionFunction, static_cast<size_t>(LampState::STATE_COUNT)>, static_cast<size_t>(LampState::STATE_COUNT)> transitionMatrix;
-
-    // Transition functions
+    // Funzioni di transizione
     void transitionToOff();
     void transitionToFullOn();
     void transitionToRelaxation();
     void transitionToSleep();
     void transitionToSuddenMovement();
 
-    // Helper function to set up the transition matrix
-    void initializeTransitionMatrix();
+    // Tabella di transizione degli stati
+    using StateTransitionRule = std::function<LampState(bool isMovement, bool isPresence, bool stateTimedOut)>;
+    std::array<StateTransitionRule, static_cast<size_t>(LampState::STATE_COUNT)> stateTransitionRules;
+
+    void initializeStateTransitionRules();
 
 public:
-    LampStateMachine(LedController& led, MotionSensor& motion);
-    void update(uint8_t maxBrightness);
+    // Metodo statico per ottenere l'istanza Singleton
+    static LampStateMachine& getInstance(LedController& led, MotionSensor& motion) {
+        static LampStateMachine instance(led, motion);  // Viene creata solo una volta
+        return instance;
+    }
+
+    void update(uint8_t maxBrightness, bool IsOnAutoMode);
     LampState getCurrentState() const { return currentState; }
-}; 
+};
