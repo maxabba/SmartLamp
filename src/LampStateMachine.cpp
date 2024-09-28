@@ -62,6 +62,8 @@ void LampStateMachine::update(uint8_t maxBrightness, bool IsOnAutoMode) {
 }
 
 void LampStateMachine::setState(LampState newState) {
+    Serial.print("State: ");
+    Serial.println(static_cast<int>(newState));
     if (currentState != newState) {
         LampState oldState = currentState;
         currentState = newState;

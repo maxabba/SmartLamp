@@ -39,7 +39,7 @@ void smartLampLoopTask(void * parameter) {
 }
 
 void setup() {
-    //Serial.begin(256000);
+    Serial.begin(256000);
 
     Serial2.begin(256000);  // Inizializza Serial2 per il sensore LD2410
 
