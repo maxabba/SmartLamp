@@ -4,6 +4,7 @@
 #include "MotionSensor.h"
 #include "LampStateMachine.h"
 #include "TimeUtils.h"
+#include "Logger.h"
 
 #define LED_PIN 18
 #define LED_CHANNEL LEDC_CHANNEL_0
@@ -15,6 +16,7 @@ LedController ledController(LED_PIN, LED_CHANNEL, LED_TIMER, LED_FREQ, LED_RESOL
 AutoModeSwitch* autoModeSwitch;
 SmartLamp* smartLamp;
 MotionSensor motionSensor;
+EnergyThresholds energyThresholds;
 
 //predefine void loopTask(void * parameter) {
 void smartLampLoopTask(void * parameter) {
@@ -29,17 +31,22 @@ void smartLampLoopTask(void * parameter) {
     for(;;) {
         uint8_t isNight = timeUtils->isNightTime();
         if (isNight == 1) {  // Notte
-            LampStateMachine& lamp = LampStateMachine::getInstance(ledController, motionSensor);
+            LampStateMachine& lamp = LampStateMachine::getInstance(ledController, motionSensor, energyThresholds);
             lamp.update(smartLamp->getNewBrightness(), autoModeSwitch->getIsOnAutoMode());
         }
-        
+            energyThresholds.performLearning();
+            energyThresholds.checkAndSave();
         // Altre operazioni necessarie...
         vTaskDelay(1); // Piccola pausa per evitare di sovraccaricare il core
     }
 }
 
 void setup() {
-    Serial.begin(256000);
+    Logger::begin(115200, LogLevel::INFO);  // Inizializza il logger
+    LOG_INFO("Main", "Starting Smart Lamp application");
+
+
+    //Serial.begin(115200);
 
     Serial2.begin(256000);  // Inizializza Serial2 per il sensore LD2410
 
@@ -50,7 +57,7 @@ void setup() {
     xTaskCreatePinnedToCore(
         smartLampLoopTask,     // Funzione da eseguire
         "LoopTask",   // Nome della task
-        4096,         // Stack size (adattare secondo necessità)
+        8192,         // Dimensione dello stack
         NULL,         // Parametri della task
         1,            // Priorità
         NULL,         // Task handle (non necessario salvarlo)

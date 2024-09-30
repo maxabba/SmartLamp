@@ -11,8 +11,6 @@ private:
     static const unsigned long TIME_CHECK_INTERVAL;
     static uint8_t currentTimeState;
     static bool timeSynced;  // Variabile di controllo per sapere se il tempo è stato sincronizzato
-    static portMUX_TYPE mux;  // Mutex per sincronizzare l'accesso alle variabili condivise
-
     // Costruttore privato per prevenire istanziazione esterna
     TimeUtils();
 
@@ -22,7 +20,7 @@ public:
 
     // Sincronizzazione del tempo tramite NTP
     void syncTimeWithNTP(const char* timeServer);
-    
+    void checkTime();
     // Verifica se è notte
     uint8_t isNightTime();  // Add this line
 

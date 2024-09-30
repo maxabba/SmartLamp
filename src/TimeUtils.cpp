@@ -72,6 +72,7 @@ void TimeUtils::syncTimeWithNTP(const char* timeServer) {
     } else {
 
         // Chiama calcNightTime() subito dopo la sincronizzazione
+        checkTime();  // Controlla il tempo per aggiornare lo stato
         calcNightTime();  // Calcola immediatamente lo stato giorno/notte
     }
 }
@@ -90,8 +91,21 @@ void TimeUtils::calcNightTime() {
         currentTimeState = 2;  // Giorno
   }
 }
+
+//define a timer function using millis() to check the time every minute
+void TimeUtils::checkTime() {
+    unsigned long currentMillis = millis();
+    if (currentMillis - lastTimeCheck >= TIME_CHECK_INTERVAL) {
+        lastTimeCheck = currentMillis;
+        struct tm timeinfo;
+        calcNightTime();  // Calcola lo stato giorno/notte
+    }
+}
+
+
 // Ritorna lo stato corrente (giorno o notte)
 uint8_t TimeUtils::isNightTime() {
+    checkTime();  // Controlla il tempo per aggiornare lo stato
     return currentTimeState;
 }
 

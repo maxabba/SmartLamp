@@ -9,6 +9,9 @@ private:
     bool movementDetected;
     uint16_t movementDistance;
     uint16_t stationaryDistance;
+    float energy;
+
+    float calculateEnergy();
 
 public:
     MotionSensor();
@@ -18,4 +21,5 @@ public:
     bool isMovementDetected() const { return movementDetected; }
     uint16_t getMovementDistance() const { return movementDistance; }
     uint16_t getStationaryDistance() const { return stationaryDistance; }
+    float getEnergy() const { return energy; }
 };

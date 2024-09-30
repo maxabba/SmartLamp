@@ -1,59 +1,61 @@
 #pragma once
+
 #include <Arduino.h>
+#include <array>
+#include <functional>
 #include "LedController.h"
 #include "MotionSensor.h"
-#include <functional>
-#include <array>
+#include "EnergyThresholds.h"
+#include "Logger.h"
 
 enum class LampState {
-    OFF,
-    FULL_ON,
-    RELAXATION,
-    SLEEP,
-    SUDDEN_MOVEMENT,
+    NP,  // Nessuna Presenza
+    S,   // Attivo/Sveglio
+    RS,  // Relax/Pre-Sonno
+    SL,  // Sonno Leggero
+    SP,  // Sonno Profondo
+    R,   // Risveglio
+    A,   // Anomalia
     STATE_COUNT
 };
 
 class LampStateMachine {
 private:
+    static LampStateMachine* instance;
+
     LampState currentState;
     LedController& ledController;
     MotionSensor& motionSensor;
+    EnergyThresholds& energyThresholds;
     uint8_t maxBrightness;
-    unsigned long stateStartTime;
-    unsigned long stateDuration;
-    unsigned long lastMovementTime;
-    unsigned long lastPresenceTime;
-    unsigned long debounceDelay;
+    uint32_t stateStartTime;
+    uint32_t stateDuration;
+    uint32_t debounceDelay;
 
-    // Costruttore privato per il pattern Singleton
-    LampStateMachine(LedController& led, MotionSensor& motion);
+    std::array<std::function<LampState(float, bool, bool, bool)>, static_cast<size_t>(LampState::STATE_COUNT)> stateTransitionRules;
 
-    // Disabilitare il costruttore di copia e l'operatore di assegnazione
-    LampStateMachine(const LampStateMachine&) = delete;
-    LampStateMachine& operator=(const LampStateMachine&) = delete;
-
-    void setState(LampState newState);
-
-    // Funzioni di transizione
-    void transitionToOff();
-    void transitionToFullOn();
-    void transitionToRelaxation();
-    void transitionToSleep();
-    void transitionToSuddenMovement();
-
-    // Tabella di transizione degli stati
-    using StateTransitionRule = std::function<LampState(bool isMovement, bool isPresence, bool stateTimedOut)>;
-    std::array<StateTransitionRule, static_cast<size_t>(LampState::STATE_COUNT)> stateTransitionRules;
+    LampStateMachine(LedController& led, MotionSensor& motion, EnergyThresholds& thresholds);
 
     void initializeStateTransitionRules();
+    void setState(LampState newState);
+
+    // Transition functions
+    void transitionToNP();
+    void transitionToS();
+    void transitionToRS();
+    void transitionToSL();
+    void transitionToSP();
+    void transitionToR();
+    void transitionToA();
+    const char* getStateName(LampState state);
+
 
 public:
-    // Metodo statico per ottenere l'istanza Singleton
-    static LampStateMachine& getInstance(LedController& led, MotionSensor& motion) {
-        static LampStateMachine instance(led, motion);  // Viene creata solo una volta
-        return instance;
-    }
+    static LampStateMachine& getInstance(LedController& led, MotionSensor& motion, EnergyThresholds& thresholds);
+    
+    // Delete copy constructor and assignment operator
+    LampStateMachine(const LampStateMachine&) = delete;
+    LampStateMachine& operator=(const LampStateMachine&) = delete;
 
     void update(uint8_t maxBrightness, bool IsOnAutoMode);
     LampState getCurrentState() const { return currentState; }
