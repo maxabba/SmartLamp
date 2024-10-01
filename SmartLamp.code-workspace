@@ -1,0 +1,18 @@
+{
+	"folders": [
+		{
+			"name": "SmartLamp",
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"web_server.h": "c",
+			"mesh_client_manager.h": "c",
+			"esp_system.h": "c",
+			"esp_log.h": "c",
+			"esp_mesh_internal.h": "c",
+			"*.tpp": "cpp"
+		}
+	}
+}

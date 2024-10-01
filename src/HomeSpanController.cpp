@@ -3,13 +3,12 @@
 SmartLamp::SmartLamp(LedController& controller) : Service::LightBulb(), ledController(controller) {
     power = new Characteristic::On();
     level = new Characteristic::Brightness(100);
-
+    newBrightness = 10;
 }
 
 boolean SmartLamp::update() {
     boolean isOn = power->getNewVal();
-    int newBrightness = level->getNewVal();
-    this->newBrightness = newBrightness;
+    newBrightness = level->getNewVal();
     
     if (isOn) {
         ledController.startFadeTo(map(newBrightness, 0, 100, 0, (1 << ledController.getResolution()) - 1), 200);  // Fade to new brightness based on resolution
@@ -59,7 +58,7 @@ void setupHomeSpan(LedController& ledController, SmartLamp*& smartLamp, AutoMode
     // Attiva la modalità auto
     autoModeSwitch->activateAutoMode();
     homeSpan.begin(Category::Lighting, "Smart Lamp");
-    homeSpan.autoPoll(8192,1,0);
+    homeSpan.autoPoll(6200,1,1);
 }
 
 

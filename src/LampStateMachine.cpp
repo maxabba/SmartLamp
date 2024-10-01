@@ -67,12 +67,12 @@ void LampStateMachine::initializeStateTransitionRules() {
 void LampStateMachine::update(uint8_t maxBrightness, bool IsOnAutoMode) {
     if (IsOnAutoMode) {
         this->maxBrightness = maxBrightness;
-        motionSensor.update();
+        
         bool isMovement = motionSensor.isMovementDetected();
         bool isPresence = motionSensor.isPresenceDetected();
         float energy = motionSensor.getEnergy();
         
-        energyThresholds.addEnergyReading(energy);
+        //energyThresholds.addEnergyReading(energy);
         
         bool stateTimedOut = millis() - stateStartTime > stateDuration;
 
@@ -83,7 +83,7 @@ void LampStateMachine::update(uint8_t maxBrightness, bool IsOnAutoMode) {
         static uint32_t lastLearningTime = 0;
         if (millis() - lastLearningTime > 3600000) {
             LOG_INFO("LampStateMachine", "Performing hourly learning");
-            energyThresholds.performLearning();
+            //energyThresholds.performLearning();
             lastLearningTime = millis();
         }
     } else {

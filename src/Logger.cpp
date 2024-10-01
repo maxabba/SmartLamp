@@ -15,7 +15,9 @@ void Logger::setLogLevel(LogLevel level) {
 
 void Logger::log(LogLevel level, const char* tag, const char* message) {
     if (level <= currentLevel) {
-        Serial.printf("[%s] %s: %s\n", levelStrings[static_cast<int>(level)], tag, message);
+        // Aggiungi il timestamp usando millis()
+        unsigned long timestamp = millis();
+        Serial.printf("[%lu ms] [%s] %s: %s\n", timestamp, levelStrings[static_cast<int>(level)], tag, message);
     }
 }
 

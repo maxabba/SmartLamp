@@ -5,6 +5,11 @@
 #include "LampStateMachine.h"
 #include "TimeUtils.h"
 #include "Logger.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/queue.h"
+#include "freertos/semphr.h"
+#include "freertos/timers.h"
 
 #define LED_PIN 18
 #define LED_CHANNEL LEDC_CHANNEL_0
@@ -21,27 +26,32 @@ EnergyThresholds energyThresholds;
 //predefine void loopTask(void * parameter) {
 void smartLampLoopTask(void * parameter) {
     TimeUtils* timeUtils = TimeUtils::getInstance();
-    
+    LOG_DEBUG("SmartLamp", "Task starting...");
+
     // Attendere che il tempo sia sincronizzato
     while (!timeUtils->isTimeSynced()) {
-        vTaskDelay(1); // Attesa di 1 secondo prima di controllare nuovamente
+        LOG_DEBUG("SmartLamp", "Waiting for time synchronization...");
+        vTaskDelay(pdMS_TO_TICKS(100));  // Aspetta 1 secondo prima di controllare di nuovo
     }
-    vTaskDelay(5000);
+    vTaskDelay(pdMS_TO_TICKS(1000));
     // Una volta sincronizzato, continua con il loop principale
     for(;;) {
         uint8_t isNight = timeUtils->isNightTime();
+        //motionSensor.update();
         if (isNight == 1) {  // Notte
             LampStateMachine& lamp = LampStateMachine::getInstance(ledController, motionSensor, energyThresholds);
+
             lamp.update(smartLamp->getNewBrightness(), autoModeSwitch->getIsOnAutoMode());
         }
-            energyThresholds.performLearning();
-            energyThresholds.checkAndSave();
         // Altre operazioni necessarie...
-        vTaskDelay(1); // Piccola pausa per evitare di sovraccaricare il core
+
+        vTaskDelay(pdMS_TO_TICKS(100));  // Delay di 1 secondo per non sovraccaricare i log
     }
 }
 
+
 void setup() {
+    delay(10000);  // Attesa per il caricamento del monitor seriale
     Logger::begin(115200, LogLevel::INFO);  // Inizializza il logger
     LOG_INFO("Main", "Starting Smart Lamp application");
 
@@ -53,17 +63,22 @@ void setup() {
     ledController.begin();
 
     motionSensor.begin();
-
-    xTaskCreatePinnedToCore(
-        smartLampLoopTask,     // Funzione da eseguire
-        "LoopTask",   // Nome della task
-        8192,         // Dimensione dello stack
-        NULL,         // Parametri della task
-        1,            // Priorità
-        NULL,         // Task handle (non necessario salvarlo)
-        1             // Core su cui eseguire la task (0)
+    motionSensor.autoUpdate(2512, 2, 0);
+    BaseType_t result = xTaskCreatePinnedToCore(
+        smartLampLoopTask,  // Funzione da eseguire
+        "LoopTask",         // Nome della task
+        2512,               // Dimensione dello stack
+        NULL,               // Parametri della task
+        3,                  // Priorità
+        NULL,               // Task handle (non necessario salvarlo)
+        0                   // Core su cui eseguire la task (prova con il core 0)
     );
+
+    if (result != pdPASS) {
+        LOG_DEBUG("SmartLamp", "Failed to create task, error: %d", result);
+    }
     setupHomeSpan(ledController, smartLamp, autoModeSwitch);
+
 }
 
 
