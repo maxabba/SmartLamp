@@ -22,8 +22,8 @@ private:
 public:
     EnergyThresholds(float initialTh1 = 50, float initialTh2 = 30, float initialTh3 = 10);
     void addEnergyReading(float energy);
-    float getTh1() const { return 50; }
-    float getTh2() const { return 30; }
+    float getTh1() const { return 90; }
+    float getTh2() const { return 80; }
     float getTh3() const { return 10; }
     void performLearning();
     void checkAndSave();

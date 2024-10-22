@@ -11,7 +11,7 @@ boolean SmartLamp::update() {
     newBrightness = level->getNewVal();
     
     if (isOn) {
-        ledController.startFadeTo(map(newBrightness, 0, 100, 0, (1 << ledController.getResolution()) - 1), 200);  // Fade to new brightness based on resolution
+        ledController.startFadeTo(map(newBrightness, 0, 100, 0, ((1 << ledController.getResolution()) - 1) * 9 / 10), 200);  // Fade to new brightness based on resolution
     }else{
         ledController.startFadeOut(200);
     }

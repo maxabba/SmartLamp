@@ -119,19 +119,19 @@ void LampStateMachine::transitionToNP() {
 }
 
 void LampStateMachine::transitionToS() {
-    uint16_t mappedBrightness = map(maxBrightness, 0, 100, 0, (1 << ledController.getResolution()) - 1);
+    uint16_t mappedBrightness = map(maxBrightness, 0, 100, 0,  ((1 << ledController.getResolution()) - 1) * 7 / 10);
     ledController.startFadeTo(mappedBrightness, 1000);
     stateDuration = 5 * 60 * 1000; // 5 minuti
 }
 
 void LampStateMachine::transitionToRS() {
-    uint16_t mappedBrightness = map(maxBrightness, 0, 100, 0, ((1 << ledController.getResolution()) - 1) * 7 / 10);
+    uint16_t mappedBrightness = map(maxBrightness, 0, 100, 0, ((1 << ledController.getResolution()) - 1) * 8 / 10);
     ledController.startFadeTo(mappedBrightness, 2000);
     stateDuration = 15 * 60 * 1000; // 15 minuti
 }
 
 void LampStateMachine::transitionToSL() {
-    uint16_t mappedBrightness = map(maxBrightness, 0, 100, 0, ((1 << ledController.getResolution()) - 1) * 3 / 10);
+    uint16_t mappedBrightness = map(maxBrightness, 0, 100, 0,  ((1 << ledController.getResolution()) - 1) * 9 / 10);
     ledController.startFadeTo(mappedBrightness, 3000);
     stateDuration = 30 * 60 * 1000; // 30 minuti
 }
@@ -142,7 +142,7 @@ void LampStateMachine::transitionToSP() {
 }
 
 void LampStateMachine::transitionToR() {
-    uint16_t mappedBrightness = map(maxBrightness, 0, 100, 0, ((1 << ledController.getResolution()) - 1) * 5 / 10);
+    uint16_t mappedBrightness = map(maxBrightness, 0, 100, 0, ((1 << ledController.getResolution()) - 1) * 8 / 10);
     ledController.startFadeTo(mappedBrightness, 15 * 60 * 1000); // 15 minuti di fade per simulare l'alba
     stateDuration = 20 * 60 * 1000; // 20 minuti
 }

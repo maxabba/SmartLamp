@@ -51,7 +51,6 @@ void smartLampLoopTask(void * parameter) {
 
 
 void setup() {
-    delay(10000);  // Attesa per il caricamento del monitor seriale
     Logger::begin(115200, LogLevel::INFO);  // Inizializza il logger
     LOG_INFO("Main", "Starting Smart Lamp application");
 
